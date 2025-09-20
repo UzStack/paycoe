@@ -9,9 +9,10 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/JscorpTech/paymento/database"
-	"github.com/JscorpTech/paymento/handlers"
-	"github.com/JscorpTech/paymento/workers"
+	"github.com/JscorpTech/paymento/internal/domain"
+	"github.com/JscorpTech/paymento/internal/http/handlers"
+	"github.com/JscorpTech/paymento/internal/repository"
+	"github.com/JscorpTech/paymento/internal/usecase"
 	"github.com/joho/godotenv"
 	_ "github.com/mattn/go-sqlite3"
 	"go.uber.org/zap"
@@ -32,13 +33,13 @@ func main() {
 		panic(err)
 	}
 	defer db.Close()
-	database.InitTables(db)
+	repository.InitTables(db)
 	log, _ := zap.NewDevelopment(
 		zap.IncreaseLevel(zapcore.InfoLevel),
 		zap.AddStacktrace(zapcore.FatalLevel),
 	)
 	defer log.Sync()
-	tasks := make(chan workers.Task, 10)
+	tasks := make(chan domain.Task, 10)
 
 	handler := handlers.NewHandler(db, log, tasks)
 	mux := http.NewServeMux()
@@ -50,7 +51,7 @@ func main() {
 	}
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
-	workers.InitWorker(log, tasks)
+	usecase.InitWorker(log, tasks)
 	defer close(tasks)
 
 	go func() {

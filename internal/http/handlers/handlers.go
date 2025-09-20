@@ -6,18 +6,18 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/JscorpTech/paymento/database"
-	"github.com/JscorpTech/paymento/workers"
+	"github.com/JscorpTech/paymento/internal/domain"
+	"github.com/JscorpTech/paymento/internal/repository"
 	"go.uber.org/zap"
 )
 
 type Handler struct {
 	DB    *sql.DB
 	Log   *zap.Logger
-	Tasks chan workers.Task
+	Tasks chan domain.Task
 }
 
-func NewHandler(db *sql.DB, log *zap.Logger, tasks chan workers.Task) *Handler {
+func NewHandler(db *sql.DB, log *zap.Logger, tasks chan domain.Task) *Handler {
 	return &Handler{
 		DB:    db,
 		Log:   log,
@@ -35,13 +35,13 @@ func (h *Handler) HandlerHome(w http.ResponseWriter, r *http.Request) {
 	var transaction_id int64
 	amount := data.Amount
 	for {
-		status, err := database.CheckTransaction(h.DB, amount)
+		status, err := repository.CheckTransaction(h.DB, amount)
 		if err != nil {
 			amount += 1
 			continue
 		}
 		if status {
-			transaction_id, err = database.CreateTransaction(h.DB, amount)
+			transaction_id, err = repository.CreateTransaction(h.DB, amount)
 			if err != nil {
 				fmt.Fprintln(w, err.Error())
 			}
@@ -50,7 +50,7 @@ func (h *Handler) HandlerHome(w http.ResponseWriter, r *http.Request) {
 		amount += 1
 	}
 
-	h.Tasks <- workers.WebhookTask{
+	h.Tasks <- domain.WebhookTask{
 		Url:     "https://example.com",
 		OrderID: 121,
 		Amount:  1212,

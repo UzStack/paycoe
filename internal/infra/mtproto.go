@@ -1,9 +1,11 @@
-package main
+package infra
 
 import (
 	"context"
-	"fmt"
+	"os"
+	"strconv"
 
+	"github.com/JscorpTech/paymento/internal/usecase"
 	"github.com/gotd/td/examples"
 	"github.com/gotd/td/telegram"
 	"github.com/gotd/td/telegram/auth"
@@ -65,7 +67,7 @@ func mtproto(ctx context.Context, log *zap.Logger) error {
 			return nil
 		}
 
-		if res := ParseTopUp(text, log); res != nil {
+		if res := usecase.ParseTopUp(text, log); res != nil {
 			log.Info("To'ldirish aniqlandi",
 				zap.String("raw", res.AmountRaw),
 				zap.Int64("raw", res.AmountInt),
@@ -94,8 +96,11 @@ func mtproto(ctx context.Context, log *zap.Logger) error {
 }
 
 func isWatched(id int64, username string) bool {
-	fmt.Print(id, username)
-	if WatchBotID != 0 && id == WatchBotID {
+	watch_id, err := strconv.ParseInt(os.Getenv("WATCH_BOT"), 10, 64)
+	if err != nil {
+		return false
+	}
+	if watch_id != 0 && id == watch_id {
 		return true
 	}
 	return false
