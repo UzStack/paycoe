@@ -9,8 +9,6 @@ import (
 type Config struct {
 	Workers    int
 	WebhookURL string
-	Port       string
-	WatchID    int64
 }
 
 func NewConfig() (*Config, error) {
@@ -22,20 +20,16 @@ func NewConfig() (*Config, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	watchStr, err := Getenv("WATCH_ID", "", true)
+	webhookurl, err := Getenv("WEBHOOK_URL", "", true)
 	if err != nil {
 		return nil, err
 	}
-	watchID, err := strconv.ParseInt(watchStr, 10, 64)
-	if err != nil {
-		return nil, err
+	if webhookurl == "" {
+		return nil, errors.New("WEBHOOK_URL is not set .env")
 	}
 	return &Config{
 		Workers:    workers,
-		WebhookURL: GetenvValue("WEBHOOK_URL", ""),
-		Port:       GetenvValue("PORT", "8080"),
-		WatchID:    watchID,
+		WebhookURL: webhookurl,
 	}, nil
 }
 
@@ -48,12 +42,5 @@ func Getenv(key string, def string, is_required bool) (string, error) {
 		return def, nil
 	}
 	return value, nil
-}
 
-func GetenvValue(key string, def string) string {
-	value, err := Getenv(key, def, false)
-	if err != nil || value == "" {
-		return def
-	}
-	return value
 }

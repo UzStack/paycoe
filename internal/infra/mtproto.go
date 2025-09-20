@@ -14,7 +14,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func mtproto(ctx context.Context, log *zap.Logger, watch_id int64) error {
+func Mtproto(ctx context.Context, log *zap.Logger, watch_id int64, watch bool) error {
 
 	d := tg.NewUpdateDispatcher()
 	gaps := updates.New(updates.Config{
@@ -46,7 +46,6 @@ func mtproto(ctx context.Context, log *zap.Logger, watch_id int64) error {
 			return nil
 		}
 
-		var senderUsername string
 		var senderID int64
 
 		switch from := msg.FromID.(type) {
@@ -60,7 +59,7 @@ func mtproto(ctx context.Context, log *zap.Logger, watch_id int64) error {
 			return nil
 		}
 
-		if !isWatched(senderID, senderUsername, watch_id) {
+		if !isWatched(senderID, watch_id) {
 			return nil
 		}
 
@@ -84,6 +83,9 @@ func mtproto(ctx context.Context, log *zap.Logger, watch_id int64) error {
 		if err != nil {
 			return errors.Wrap(err, "call self")
 		}
+		if !watch {
+			return nil
+		}
 		return gaps.Run(ctx, client.API(), user.ID, updates.AuthOptions{
 			OnStart: func(ctx context.Context) {
 				log.Info("Gaps started")
@@ -92,7 +94,7 @@ func mtproto(ctx context.Context, log *zap.Logger, watch_id int64) error {
 	})
 }
 
-func isWatched(id int64, username string, watch_id int64) bool {
+func isWatched(id int64, watch_id int64) bool {
 	if watch_id != 0 && id == watch_id {
 		return true
 	}

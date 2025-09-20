@@ -10,13 +10,13 @@ import (
 
 func InitWorker(ctx context.Context, log *zap.Logger, tasks <-chan domain.Task, cfg *config.Config) error {
 	for range cfg.Workers {
-		go Worker(ctx, tasks, log)
+		go Worker(ctx, tasks, log, cfg)
 	}
 	log.Info("Workers running: ", zap.Int("workers", cfg.Workers))
 	return nil
 }
 
-func Worker(ctx context.Context, tasks <-chan domain.Task, log *zap.Logger) error {
+func Worker(ctx context.Context, tasks <-chan domain.Task, log *zap.Logger, cfg *config.Config) error {
 	for {
 		select {
 		case <-ctx.Done():
@@ -27,7 +27,7 @@ func Worker(ctx context.Context, tasks <-chan domain.Task, log *zap.Logger) erro
 				continue
 			}
 			payload := task.Paylod().(domain.WebhookTask)
-			WebhookRequest("https://vesbini.felixits.uz/api/basket/", map[string]any{
+			WebhookRequest(cfg.WebhookURL, map[string]any{
 				"order_id": payload.OrderID,
 			}, log, 1)
 		}

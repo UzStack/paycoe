@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
@@ -11,7 +12,8 @@ import (
 
 	"github.com/JscorpTech/paymento/internal/config"
 	"github.com/JscorpTech/paymento/internal/domain"
-	"github.com/JscorpTech/paymento/internal/http/handlers"
+	"github.com/JscorpTech/paymento/internal/http/routes"
+	"github.com/JscorpTech/paymento/internal/infra"
 	"github.com/JscorpTech/paymento/internal/repository"
 	"github.com/JscorpTech/paymento/internal/usecase"
 	"github.com/joho/godotenv"
@@ -20,14 +22,37 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-var (
-	WatchBotID int64 = 7612977626
-)
+func printHelp() {
+	fmt.Println("Usage paycoe [options]")
+	fmt.Println("Options:")
+	fmt.Println("  -h                 Show this help message")
+	fmt.Println("  --telegram         Telegram accountni ulash")
+	os.Exit(0)
+}
 
 func main() {
 	if err := godotenv.Load(".env"); err != nil {
 		panic(".env file not loaded: " + err.Error())
 	}
+	log, _ := zap.NewDevelopment(
+		zap.IncreaseLevel(zapcore.InfoLevel),
+		zap.AddStacktrace(zapcore.FatalLevel),
+	)
+	defer log.Sync()
+	if len(os.Args) > 1 {
+		switch os.Args[1] {
+		case "-h":
+			printHelp()
+		case "--telegram":
+			if err := infra.Mtproto(context.Background(), zap.NewNop(), 0, false); err != nil {
+				panic(err)
+			}
+			fmt.Println("")
+			fmt.Println("Account qo'shildi")
+			os.Exit(0)
+		}
+	}
+
 	cfg, err := config.NewConfig()
 	if err != nil {
 		panic(err)
@@ -39,19 +64,13 @@ func main() {
 	}
 	defer db.Close()
 	repository.InitTables(db)
-	log, _ := zap.NewDevelopment(
-		zap.IncreaseLevel(zapcore.InfoLevel),
-		zap.AddStacktrace(zapcore.FatalLevel),
-	)
-	defer log.Sync()
 	tasks := make(chan domain.Task, 10)
 
-	handler := handlers.NewHandler(db, log, tasks)
 	mux := http.NewServeMux()
-	mux.HandleFunc("/create/transaction/", handler.HandlerHome)
+	routes.InitRoutes(mux, db, log, tasks, cfg)
 
 	srv := &http.Server{
-		Addr:    ":8084",
+		Addr:    ":" + cfg.Port,
 		Handler: mux,
 	}
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
@@ -63,6 +82,11 @@ func main() {
 
 	go func() {
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatal("server failed", zap.Error(err))
+		}
+	}()
+	go func() {
+		if err := infra.Mtproto(ctx, log, cfg.WatchID, true); err != nil {
 			log.Fatal("server failed", zap.Error(err))
 		}
 	}()

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/JscorpTech/paymento/internal/config"
 	"github.com/JscorpTech/paymento/internal/domain"
 	"github.com/JscorpTech/paymento/internal/repository"
 	"go.uber.org/zap"
@@ -15,13 +16,15 @@ type Handler struct {
 	DB    *sql.DB
 	Log   *zap.Logger
 	Tasks chan domain.Task
+	Cfg   *config.Config
 }
 
-func NewHandler(db *sql.DB, log *zap.Logger, tasks chan domain.Task) *Handler {
+func NewHandler(db *sql.DB, log *zap.Logger, tasks chan domain.Task, cfg *config.Config) *Handler {
 	return &Handler{
 		DB:    db,
 		Log:   log,
 		Tasks: tasks,
+		Cfg:   cfg,
 	}
 }
 
@@ -51,7 +54,7 @@ func (h *Handler) HandlerHome(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h.Tasks <- domain.WebhookTask{
-		Url:     "https://example.com",
+		Url:     h.Cfg.WebhookURL,
 		OrderID: 121,
 		Amount:  1212,
 	}
