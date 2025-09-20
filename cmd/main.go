@@ -23,7 +23,7 @@ import (
 )
 
 func printHelp() {
-	fmt.Println("Usage paycoe [options]")
+	fmt.Println("Usage paycue [options]")
 	fmt.Println("Options:")
 	fmt.Println("  -h                 Show this help message")
 	fmt.Println("  --telegram         Telegram accountni ulash")
