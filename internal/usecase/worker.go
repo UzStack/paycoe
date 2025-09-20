@@ -1,15 +1,16 @@
 package usecase
 
 import (
+	"github.com/JscorpTech/paymento/internal/config"
 	"github.com/JscorpTech/paymento/internal/domain"
 	"go.uber.org/zap"
 )
 
-func InitWorker(log *zap.Logger, tasks <-chan domain.Task) error {
-	for i := range 10 {
-		log.Info("Worker running", zap.Int("i", i))
+func InitWorker(log *zap.Logger, tasks <-chan domain.Task, cfg *config.Config) error {
+	for range cfg.Workers {
 		go Worker(tasks, log)
 	}
+	log.Info("Workers running: ", zap.Int("workers", cfg.Workers))
 	return nil
 }
 

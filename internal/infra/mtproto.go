@@ -2,9 +2,6 @@ package infra
 
 import (
 	"context"
-	"os"
-	"strconv"
-
 	"github.com/JscorpTech/paymento/internal/usecase"
 	"github.com/gotd/td/examples"
 	"github.com/gotd/td/telegram"
@@ -17,7 +14,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func mtproto(ctx context.Context, log *zap.Logger) error {
+func mtproto(ctx context.Context, log *zap.Logger, watch_id int64) error {
 
 	d := tg.NewUpdateDispatcher()
 	gaps := updates.New(updates.Config{
@@ -63,7 +60,7 @@ func mtproto(ctx context.Context, log *zap.Logger) error {
 			return nil
 		}
 
-		if !isWatched(senderID, senderUsername) {
+		if !isWatched(senderID, senderUsername, watch_id) {
 			return nil
 		}
 
@@ -95,11 +92,7 @@ func mtproto(ctx context.Context, log *zap.Logger) error {
 	})
 }
 
-func isWatched(id int64, username string) bool {
-	watch_id, err := strconv.ParseInt(os.Getenv("WATCH_BOT"), 10, 64)
-	if err != nil {
-		return false
-	}
+func isWatched(id int64, username string, watch_id int64) bool {
 	if watch_id != 0 && id == watch_id {
 		return true
 	}

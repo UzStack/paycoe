@@ -9,6 +9,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/JscorpTech/paymento/internal/config"
 	"github.com/JscorpTech/paymento/internal/domain"
 	"github.com/JscorpTech/paymento/internal/http/handlers"
 	"github.com/JscorpTech/paymento/internal/repository"
@@ -26,6 +27,10 @@ var (
 func main() {
 	if err := godotenv.Load(".env"); err != nil {
 		panic(".env file not loaded: " + err.Error())
+	}
+	cfg, err := config.NewConfig()
+	if err != nil {
+		panic(err)
 	}
 
 	db, err := sql.Open("sqlite3", "./db.sqlite3")
@@ -51,7 +56,9 @@ func main() {
 	}
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
-	usecase.InitWorker(log, tasks)
+	if err := usecase.InitWorker(log, tasks, cfg); err != nil {
+		log.Error("worker init failed", zap.Any("error", err.Error()))
+	}
 	defer close(tasks)
 
 	go func() {
