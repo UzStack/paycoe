@@ -1,7 +1,7 @@
 package domain
 
 type Task interface {
-	Paylod() (map[string]any, error)
+	Paylod() any
 }
 
 type WebhookTask struct {
@@ -10,10 +10,6 @@ type WebhookTask struct {
 	Url     string
 }
 
-func (w WebhookTask) Paylod() (map[string]any, error) {
-	return map[string]any{
-		"order_id": w.OrderID,
-		"amount":   w.Amount,
-		"url":      w.Url,
-	}, nil
+func (w WebhookTask) Paylod() any {
+	return w
 }

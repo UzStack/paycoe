@@ -56,7 +56,7 @@ func main() {
 	}
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
-	if err := usecase.InitWorker(log, tasks, cfg); err != nil {
+	if err := usecase.InitWorker(ctx, log, tasks, cfg); err != nil {
 		log.Error("worker init failed", zap.Any("error", err.Error()))
 	}
 	defer close(tasks)
