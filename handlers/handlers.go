@@ -7,15 +7,21 @@ import (
 	"net/http"
 
 	"github.com/JscorpTech/paymento/database"
+	"github.com/JscorpTech/paymento/workers"
+	"go.uber.org/zap"
 )
 
 type Handler struct {
-	DB *sql.DB
+	DB    *sql.DB
+	Log   *zap.Logger
+	Tasks chan workers.Task
 }
 
-func NewHandler(db *sql.DB) *Handler {
+func NewHandler(db *sql.DB, log *zap.Logger, tasks chan workers.Task) *Handler {
 	return &Handler{
-		DB: db,
+		DB:    db,
+		Log:   log,
+		Tasks: tasks,
 	}
 }
 
@@ -42,6 +48,12 @@ func (h *Handler) HandlerHome(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 		amount += 1
+	}
+
+	h.Tasks <- workers.WebhookTask{
+		Url:     "https://example.com",
+		OrderID: 121,
+		Amount:  1212,
 	}
 	w.Header().Add("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(struct {

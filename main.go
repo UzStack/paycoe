@@ -11,6 +11,7 @@ import (
 
 	"github.com/JscorpTech/paymento/database"
 	"github.com/JscorpTech/paymento/handlers"
+	"github.com/JscorpTech/paymento/workers"
 	"github.com/joho/godotenv"
 	_ "github.com/mattn/go-sqlite3"
 	"go.uber.org/zap"
@@ -22,26 +23,24 @@ var (
 )
 
 func main() {
-	// Load env
 	if err := godotenv.Load(".env"); err != nil {
 		panic(".env file not loaded: " + err.Error())
 	}
 
-	// DB
 	db, err := sql.Open("sqlite3", "./db.sqlite3")
 	if err != nil {
 		panic(err)
 	}
 	defer db.Close()
 	database.InitTables(db)
-	// Logger
 	log, _ := zap.NewDevelopment(
 		zap.IncreaseLevel(zapcore.InfoLevel),
 		zap.AddStacktrace(zapcore.FatalLevel),
 	)
 	defer log.Sync()
+	tasks := make(chan workers.Task, 10)
 
-	handler := handlers.NewHandler(db)
+	handler := handlers.NewHandler(db, log, tasks)
 	mux := http.NewServeMux()
 	mux.HandleFunc("/create/transaction/", handler.HandlerHome)
 
@@ -49,12 +48,11 @@ func main() {
 		Addr:    ":8084",
 		Handler: mux,
 	}
-
-	// Context with signal
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
+	workers.InitWorker(log, tasks)
+	defer close(tasks)
 
-	// Run server
 	go func() {
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatal("server failed", zap.Error(err))
