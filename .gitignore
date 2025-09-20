@@ -3,3 +3,4 @@ sessions/*
 tmp/
 .env
 bin/*
+logs/*

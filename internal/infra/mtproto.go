@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 
-	"github.com/JscorpTech/paymento/internal/config"
 	"github.com/JscorpTech/paymento/internal/domain"
 	"github.com/JscorpTech/paymento/internal/repository"
 	"github.com/JscorpTech/paymento/internal/usecase"
@@ -19,7 +18,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func Mtproto(ctx context.Context, db *sql.DB, log *zap.Logger, watch_id int64, watch bool, tasks chan domain.Task, cfg *config.Config) error {
+func Mtproto(ctx context.Context, db *sql.DB, log *zap.Logger, watch_id int64, watch bool, tasks chan domain.Task) error {
 
 	d := tg.NewUpdateDispatcher()
 	gaps := updates.New(updates.Config{
@@ -82,7 +81,6 @@ func Mtproto(ctx context.Context, db *sql.DB, log *zap.Logger, watch_id int64, w
 			tasks <- domain.WebhookTask{
 				Amount:  res.AmountInt,
 				TransID: trans_id,
-				Url:     cfg.WebhookURL,
 			}
 		} else {
 			log.Debug("Xabar top_up emas", zap.String("text", limit(text, 120)))

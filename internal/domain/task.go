@@ -7,7 +7,6 @@ type Task interface {
 type WebhookTask struct {
 	TransID int64
 	Amount  int64
-	Url     string
 }
 
 func (w WebhookTask) Paylod() any {

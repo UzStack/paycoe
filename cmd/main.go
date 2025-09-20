@@ -20,6 +20,7 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+	"gopkg.in/natefinch/lumberjack.v2"
 )
 
 func printHelp() {
@@ -34,17 +35,30 @@ func main() {
 	if err := godotenv.Load(".env"); err != nil {
 		panic(".env file not loaded: " + err.Error())
 	}
-	log, _ := zap.NewDevelopment(
-		zap.IncreaseLevel(zapcore.InfoLevel),
-		zap.AddStacktrace(zapcore.FatalLevel),
+	writer := zapcore.AddSync(&lumberjack.Logger{
+		Filename:   "logs/app.log",
+		MaxSize:    10,   // MB da (fayl 10 MB bo‘lsa rotate qiladi)
+		MaxBackups: 5,    // necha eski faylni saqlash
+		MaxAge:     30,   // kunlarda saqlash muddati
+		Compress:   true, // eski fayllarni .gz qiladi
+	})
+	encoderCfg := zap.NewProductionEncoderConfig()
+	encoderCfg.EncodeTime = zapcore.ISO8601TimeEncoder
+
+	core := zapcore.NewCore(
+		zapcore.NewJSONEncoder(encoderCfg),
+		writer,
+		zapcore.InfoLevel,
 	)
+
+	log := zap.New(core)
 	defer log.Sync()
 	if len(os.Args) > 1 {
 		switch os.Args[1] {
 		case "-h":
 			printHelp()
 		case "--telegram":
-			if err := infra.Mtproto(context.Background(), nil, zap.NewNop(), 0, false, nil, nil); err != nil {
+			if err := infra.Mtproto(context.Background(), nil, zap.NewNop(), 0, false, nil); err != nil {
 				panic(err)
 			}
 			fmt.Println("")
@@ -75,7 +89,7 @@ func main() {
 	}
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
-	if err := usecase.InitWorker(ctx, log, tasks, cfg); err != nil {
+	if err := usecase.InitWorker(ctx, log, tasks, cfg, db); err != nil {
 		log.Error("worker init failed", zap.Any("error", err.Error()))
 	}
 	defer close(tasks)
@@ -86,7 +100,7 @@ func main() {
 		}
 	}()
 	go func() {
-		if err := infra.Mtproto(ctx, db, log, cfg.WatchID, true, tasks, cfg); err != nil {
+		if err := infra.Mtproto(ctx, db, log, cfg.WatchID, true, tasks); err != nil {
 			log.Fatal("server failed", zap.Error(err))
 		}
 	}()

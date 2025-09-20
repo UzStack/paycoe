@@ -38,8 +38,15 @@ func (h *Handler) HandlerHome(w http.ResponseWriter, r *http.Request) {
 	var transaction_id int64
 	amount := data.Amount
 	for {
+		if amount-data.Amount > 100 {
+			json.NewEncoder(w).Encode(map[string]any{
+				"status": 0,
+			})
+			return
+		}
 		status, err := repository.CheckTransaction(h.DB, amount)
 		if err != nil {
+			h.Log.Error(err.Error())
 			amount += 1
 			continue
 		}
