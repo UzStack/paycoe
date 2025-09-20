@@ -5,8 +5,8 @@ type Task interface {
 }
 
 type WebhookTask struct {
-	OrderID int
-	Amount  int
+	TransID int64
+	Amount  int64
 	Url     string
 }
 

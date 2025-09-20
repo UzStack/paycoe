@@ -28,7 +28,7 @@ func Worker(ctx context.Context, tasks <-chan domain.Task, log *zap.Logger, cfg 
 			}
 			payload := task.Paylod().(domain.WebhookTask)
 			WebhookRequest(cfg.WebhookURL, map[string]any{
-				"order_id": payload.OrderID,
+				"order_id": payload.TransID,
 			}, log, 1)
 		}
 	}

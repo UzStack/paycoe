@@ -53,11 +53,6 @@ func (h *Handler) HandlerHome(w http.ResponseWriter, r *http.Request) {
 		amount += 1
 	}
 
-	h.Tasks <- domain.WebhookTask{
-		Url:     h.Cfg.WebhookURL,
-		OrderID: 121,
-		Amount:  1212,
-	}
 	w.Header().Add("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(struct {
 		Amount        int64 `json:"amount"`

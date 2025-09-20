@@ -1,12 +1,16 @@
 package repository
 
-import "database/sql"
+import (
+	"database/sql"
+	"fmt"
+)
 
 func InitTables(db *sql.DB) {
 	_, err := db.Exec(`
 		CREATE TABLE IF NOT EXISTS transactions (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
-			amount INTEGER NOT NULL UNIQUE,
+			amount INTEGER NOT NULL,
+			status BOOLEAN DEFAULT 1,
 			created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 		);
 		CREATE UNIQUE INDEX IF NOT EXISTS amount_index ON transactions(amount);
@@ -25,7 +29,7 @@ func CreateTransaction(db *sql.DB, amount int64) (int64, error) {
 }
 
 func CheckTransaction(db *sql.DB, amount int64) (bool, error) {
-	result, err := db.Query("SELECT count(id) FROM transactions WHERE amount=?", amount)
+	result, err := db.Query("SELECT count(id) FROM transactions WHERE amount=? and status=1", amount)
 	var count int
 	defer result.Close()
 	if err != nil {
@@ -46,4 +50,13 @@ func DeleteTransaction(db *sql.DB, transaction_id int64) error {
 		return err
 	}
 	return nil
+}
+
+func GetTransaction(db *sql.DB, amount int64) (int64, error) {
+	var trans_id int64
+	err := db.QueryRow("SELECT id FROM transactions WHERE amount=? and status=1", amount).Scan(&trans_id)
+	if err != nil {
+		return 0, err
+	}
+	return trans_id, nil
 }

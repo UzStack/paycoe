@@ -44,7 +44,7 @@ func main() {
 		case "-h":
 			printHelp()
 		case "--telegram":
-			if err := infra.Mtproto(context.Background(), zap.NewNop(), 0, false); err != nil {
+			if err := infra.Mtproto(context.Background(), nil, zap.NewNop(), 0, false, nil, nil); err != nil {
 				panic(err)
 			}
 			fmt.Println("")
@@ -86,7 +86,7 @@ func main() {
 		}
 	}()
 	go func() {
-		if err := infra.Mtproto(ctx, log, cfg.WatchID, true); err != nil {
+		if err := infra.Mtproto(ctx, db, log, cfg.WatchID, true, tasks, cfg); err != nil {
 			log.Fatal("server failed", zap.Error(err))
 		}
 	}()

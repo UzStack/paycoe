@@ -2,6 +2,11 @@ package infra
 
 import (
 	"context"
+	"database/sql"
+
+	"github.com/JscorpTech/paymento/internal/config"
+	"github.com/JscorpTech/paymento/internal/domain"
+	"github.com/JscorpTech/paymento/internal/repository"
 	"github.com/JscorpTech/paymento/internal/usecase"
 	"github.com/gotd/td/examples"
 	"github.com/gotd/td/telegram"
@@ -14,7 +19,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func Mtproto(ctx context.Context, log *zap.Logger, watch_id int64, watch bool) error {
+func Mtproto(ctx context.Context, db *sql.DB, log *zap.Logger, watch_id int64, watch bool, tasks chan domain.Task, cfg *config.Config) error {
 
 	d := tg.NewUpdateDispatcher()
 	gaps := updates.New(updates.Config{
@@ -66,8 +71,19 @@ func Mtproto(ctx context.Context, log *zap.Logger, watch_id int64, watch bool) e
 		if res := usecase.ParseTopUp(text, log); res != nil {
 			log.Info("To'ldirish aniqlandi",
 				zap.String("raw", res.AmountRaw),
-				zap.Int64("raw", res.AmountInt),
+				zap.Int64("int", res.AmountInt),
 			)
+			trans_id, err := repository.GetTransaction(db, res.AmountInt)
+			if err != nil {
+				log.Info("Transaction topilmadi", zap.Error(err), zap.Int64("amount", res.AmountInt))
+				return nil
+			}
+			log.Info("Transaction topildi", zap.Int64("id", trans_id), zap.Int64("amount", res.AmountInt))
+			tasks <- domain.WebhookTask{
+				Amount:  res.AmountInt,
+				TransID: trans_id,
+				Url:     cfg.WebhookURL,
+			}
 		} else {
 			log.Debug("Xabar top_up emas", zap.String("text", limit(text, 120)))
 		}
