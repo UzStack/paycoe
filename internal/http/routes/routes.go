@@ -13,4 +13,5 @@ import (
 func InitRoutes(mux *http.ServeMux, db *sql.DB, log *zap.Logger, tasks chan domain.Task, cfg *config.Config) {
 	handler := handlers.NewHandler(db, log, tasks, cfg)
 	mux.HandleFunc("/create/transaction/", handler.HandlerHome)
+	mux.HandleFunc("/health/", handler.HealthHandler)
 }

@@ -28,6 +28,13 @@ func NewHandler(db *sql.DB, log *zap.Logger, tasks chan domain.Task, cfg *config
 	}
 }
 
+func (h *Handler) HealthHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Add("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]bool{
+		"ok": true,
+	})
+}
+
 func (h *Handler) HandlerHome(w http.ResponseWriter, r *http.Request) {
 	var data struct {
 		Amount int64 `json:"amount"`

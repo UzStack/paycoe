@@ -15,6 +15,7 @@ func InitTables(db *sql.DB) {
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			amount INTEGER NOT NULL,
 			status BOOLEAN DEFAULT 1,
+			webhook_status BOOLEAN DEFAULT 0,
 			transaction_id TEXT NOT NULL UNIQUE,
 			created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 		);
@@ -87,8 +88,8 @@ func GetOldTransactions(db *sql.DB) ([]map[string]any, error) {
 	return transactions, nil
 }
 
-func ConfirmTransaction(db *sql.DB, transaction_id string) error {
-	_, err := db.Exec("UPDATE transactions SET status=0 WHERE transaction_id=?", transaction_id)
+func ConfirmTransaction(db *sql.DB, transactionID string, webhookStatus bool) error {
+	_, err := db.Exec("UPDATE transactions SET status=0, webhook_status=? WHERE transaction_id=?", webhookStatus, transactionID)
 	if err != nil {
 		return err
 	}
