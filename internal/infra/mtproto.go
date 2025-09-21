@@ -77,7 +77,7 @@ func Mtproto(ctx context.Context, db *sql.DB, log *zap.Logger, watch_id int64, w
 				log.Info("Transaction topilmadi", zap.Error(err), zap.Int64("amount", res.AmountInt))
 				return nil
 			}
-			log.Info("Transaction topildi", zap.Int64("id", trans_id), zap.Int64("amount", res.AmountInt))
+			log.Info("Transaction topildi", zap.String("id", trans_id), zap.Int64("amount", res.AmountInt))
 			tasks <- domain.WebhookTask{
 				Amount:  res.AmountInt,
 				TransID: trans_id,

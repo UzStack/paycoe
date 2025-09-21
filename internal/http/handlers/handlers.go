@@ -35,12 +35,15 @@ func (h *Handler) HandlerHome(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
 		fmt.Fprintln(w, err.Error())
 	}
-	var transaction_id int64
+	var transaction_id string
 	amount := data.Amount
 	for {
 		if amount-data.Amount > 100 {
-			json.NewEncoder(w).Encode(map[string]any{
-				"status": 0,
+			json.NewEncoder(w).Encode(domain.Response{
+				Status: false,
+				Data: domain.Detail{
+					Detail: "Amount must be less than 100",
+				},
 			})
 			return
 		}
@@ -61,9 +64,11 @@ func (h *Handler) HandlerHome(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Add("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(struct {
-		Amount        int64 `json:"amount"`
-		TransactionID int64 `json:"transaction_id"`
-	}{Amount: amount, TransactionID: transaction_id})
-
+	json.NewEncoder(w).Encode(domain.Response{
+		Status: true,
+		Data: struct {
+			Amount        int64  `json:"amount"`
+			TransactionID string `json:"transaction_id"`
+		}{Amount: amount, TransactionID: transaction_id},
+	})
 }

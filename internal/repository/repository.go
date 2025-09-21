@@ -2,6 +2,8 @@ package repository
 
 import (
 	"database/sql"
+
+	"github.com/google/uuid"
 )
 
 var (
@@ -14,21 +16,24 @@ func InitTables(db *sql.DB) {
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			amount INTEGER NOT NULL,
 			status BOOLEAN DEFAULT 1,
+			transaction_id TEXT NOT NULL UNIQUE,
 			created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 		);
-		CREATE UNIQUE INDEX IF NOT EXISTS amount_created_at_index ON transactions(amount, created_at);
+		CREATE INDEX IF NOT EXISTS amount_created_at_index ON transactions(amount, created_at);
+		CREATE UNIQUE INDEX IF NOT EXISTS transaction_id_index ON transactions(transaction_id);
 	`)
 	if err != nil {
 		panic(err)
 	}
 }
 
-func CreateTransaction(db *sql.DB, amount int64) (int64, error) {
-	result, err := db.Exec("INSERT INTO transactions(amount) VALUES(?)", amount)
+func CreateTransaction(db *sql.DB, amount int64) (string, error) {
+	transaction_id := uuid.New().String()
+	_, err := db.Exec("INSERT INTO transactions(amount,transaction_id) VALUES(?, ?)", amount, transaction_id)
 	if err != nil {
-		return 0, err
+		return "", err
 	}
-	return result.LastInsertId()
+	return transaction_id, nil
 }
 
 func CheckTransaction(db *sql.DB, amount int64) (bool, error) {
@@ -43,27 +48,27 @@ func CheckTransaction(db *sql.DB, amount int64) (bool, error) {
 	return count == 0, nil
 }
 
-func DeleteTransaction(db *sql.DB, transaction_id int64) error {
-	_, err := db.Exec("DELETE FROM transactions WHERE id=?", transaction_id)
+func DeleteTransaction(db *sql.DB, transaction_id string) error {
+	_, err := db.Exec("DELETE FROM transactions WHERE transaction_id=?", transaction_id)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func GetTransaction(db *sql.DB, amount int64) (int64, error) {
-	var trans_id int64
-	err := db.QueryRow(`SELECT id FROM transactions WHERE 
+func GetTransaction(db *sql.DB, amount int64) (string, error) {
+	var trans_id string
+	err := db.QueryRow(`SELECT transaction_id FROM transactions WHERE 
 		amount=? and status=1 and
 		created_at BETWEEN datetime('now', '-`+TransactionTimeOutMinutes+` minutes') and datetime('now')`, amount).Scan(&trans_id)
 	if err != nil {
-		return 0, err
+		return "", err
 	}
 	return trans_id, nil
 }
 
-func ConfirmTransaction(db *sql.DB, transaction_id int64) error {
-	_, err := db.Exec("UPDATE transactions SET status=0 WHERE id=?", transaction_id)
+func ConfirmTransaction(db *sql.DB, transaction_id string) error {
+	_, err := db.Exec("UPDATE transactions SET status=0 WHERE transaction_id=?", transaction_id)
 	if err != nil {
 		return err
 	}

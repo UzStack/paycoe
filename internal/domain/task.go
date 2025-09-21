@@ -5,7 +5,7 @@ type Task interface {
 }
 
 type WebhookTask struct {
-	TransID int64
+	TransID string
 	Amount  int64
 }
 
