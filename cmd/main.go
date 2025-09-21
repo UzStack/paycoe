@@ -20,7 +20,7 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-	"gopkg.in/natefinch/lumberjack.v2"
+	// "gopkg.in/natefinch/lumberjack.v2"
 )
 
 func printHelp() {
@@ -35,23 +35,24 @@ func main() {
 	if err := godotenv.Load(".env"); err != nil {
 		panic(".env file not loaded: " + err.Error())
 	}
-	writer := zapcore.AddSync(&lumberjack.Logger{
-		Filename:   "logs/app.log",
-		MaxSize:    10,   // MB da (fayl 10 MB bo‘lsa rotate qiladi)
-		MaxBackups: 5,    // necha eski faylni saqlash
-		MaxAge:     30,   // kunlarda saqlash muddati
-		Compress:   true, // eski fayllarni .gz qiladi
-	})
+	// writer := zapcore.AddSync(&lumberjack.Logger{
+	// 	Filename:   "logs/app.log",
+	// 	MaxSize:    10,   // MB da (fayl 10 MB bo‘lsa rotate qiladi)
+	// 	MaxBackups: 5,    // necha eski faylni saqlash
+	// 	MaxAge:     30,   // kunlarda saqlash muddati
+	// 	Compress:   true, // eski fayllarni .gz qiladi
+	// })
 	encoderCfg := zap.NewProductionEncoderConfig()
 	encoderCfg.EncodeTime = zapcore.ISO8601TimeEncoder
 
-	core := zapcore.NewCore(
-		zapcore.NewJSONEncoder(encoderCfg),
-		writer,
-		zapcore.InfoLevel,
-	)
+	// core := zapcore.NewCore(
+	// 	zapcore.NewJSONEncoder(encoderCfg),
+	// 	writer,
+	// 	zapcore.InfoLevel,
+	// )
 
-	log := zap.New(core)
+	// log := zap.New(core)
+	log, _ := zap.NewDevelopment()
 	defer log.Sync()
 	if len(os.Args) > 1 {
 		switch os.Args[1] {
@@ -99,11 +100,11 @@ func main() {
 			log.Fatal("server failed", zap.Error(err))
 		}
 	}()
-	go func() {
-		if err := infra.Mtproto(ctx, db, log, cfg.WatchID, true, tasks); err != nil {
-			log.Fatal("server failed", zap.Error(err))
-		}
-	}()
+	// go func() {
+	// 	if err := infra.Mtproto(ctx, db, log, cfg.WatchID, true, tasks); err != nil {
+	// 		log.Fatal("server failed", zap.Error(err))
+	// 	}
+	// }()
 
 	log.Info("server started", zap.String("addr", srv.Addr))
 

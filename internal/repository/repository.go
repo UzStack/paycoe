@@ -2,7 +2,6 @@ package repository
 
 import (
 	"database/sql"
-
 	"github.com/google/uuid"
 )
 
@@ -65,6 +64,27 @@ func GetTransaction(db *sql.DB, amount int64) (string, error) {
 		return "", err
 	}
 	return trans_id, nil
+}
+
+func GetOldTransactions(db *sql.DB) ([]map[string]any, error) {
+	result, err := db.Query(`SELECT transaction_id, amount FROM transactions WHERE status=1 and created_at <= datetime('now', '-` + TransactionTimeOutMinutes + ` minutes')`)
+	if err != nil {
+		return nil, err
+	}
+	defer result.Close()
+	var transactions []map[string]any
+	for result.Next() {
+		var transaction_id string
+		var amount int64
+		if err := result.Scan(&transaction_id, &amount); err != nil {
+			return nil, err
+		}
+		transactions = append(transactions, map[string]any{
+			"amount":         amount,
+			"transaction_id": transaction_id,
+		})
+	}
+	return transactions, nil
 }
 
 func ConfirmTransaction(db *sql.DB, transaction_id string) error {
