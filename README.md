@@ -56,14 +56,16 @@ endi shu papkada `.env` fayil yaratishimiz kerak api hash va api keyni [my.teleg
 
 ```bash
 APP_ID=<app_id>
-APP_HASH=<api_hash>
-TG_PHONE=+998943990509
+APP_HASH=<app_hash>
+TG_PHONE=<you_phone_number>
 SESSION_DIR="sessions"
 CALLBACK_URL=https://example.com
 REDIS_ADDR=127.0.0.1:6379
-WATCH_BOT_USERNAME=JscorpTechAdmin
 WORKERS=10
+WEBHOOK_URL=http://127.0.0.1:10800/health/
+WATCH_ID=856254490
 PORT=10800
+DEBUG=true
 ```
 
 > Eslatma: .env fayildagi `CALLBACK_URL` juda muhum to’lov bajarilgandan keyin shu callback urlga malumotlarni yuboradi qaysi transaction bajarilganligi haqida
