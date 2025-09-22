@@ -28,7 +28,7 @@ Loyiha nomi paycue to’lovlarni avtomatlashtirish uchun open source dastur. Bu 
 
 ### O’rnatish
 
-Githubdan oxirgi releaseni yuklab oling [download](https://github.com/JscorpTech/paycoe) `<arch>` o’rniga serveringizdagi arch yoziladi odatda `amd`
+Githubdan oxirgi releaseni yuklab oling [download](https://github.com/UzStack/paycoe) `<arch>` o’rniga serveringizdagi arch yoziladi odatda `amd`
 
 ```bash
 curl -o paycue -L https://github.com/UzStack/paycoe/releases/download/<version>/paycue-linux-<arch>
@@ -120,8 +120,47 @@ dastur ishlayotganini tekshiring
 sudo systemctl status paycue
 ```
 
+# Webhook
+
+To’lov bajarilganda yoki bekor qilinganda dastur siz kiritgan callback urlga malumotlarni yuboradi. Ikkita asosiy  action mavjud cancel va confirm
+
+```json
+# to'lov bajarilganda
+{
+	"action": "confirm",
+	"amount": 10001,
+	"transaction_id": "<uuid4>"
+}
+```
+
+```json
+# to'lov bekor qilinganda
+{
+	"action":"cancel",
+	"amount": 10001,
+	"transaction_id": "<uuid4>"
+}
+```
+
+Ikkala actionda ham callback url `200 status code` qaytarishi kerak json example
+
+```json
+{
+	"ok": true
+}
+```
+
+### Qo’shimcha malumot
+
+- callback urldan success javob kelmasa dastur `3 marotaba` qayta urinadi va baribir javob success bo’lmasa transactionni yopadi.
+
 # Muhum malumotlar
 
 - To’lovdan avval transaction yaratasiz va dastur qaytargan miqdorda to’lov qilishini so’raysiz
 - Transaction 30 daqiqa active qoladi keyin bekor qilinadi 30 daqiqadan keyingi to’langan to’lovlar tasdiqlanmaydi.
 - Dastur ko’plab transactionlar bilan ishlay oladi lekin to’lov summasi farqi kattalshib ketishi mumkun masalan `10 ming` so’mlik `1000 ta` transactiondan keyin to’lov `11 ming` bo’lib ketadi buni oldini olish uchun bir nechta kartalardan foydalanishingiz mumkun dasturni bir nechta varintlarini turli accountlarga ulaysiz. (`buni hozirda qo’lda so’zlashingiz kerak  keyingi yangilanishlarda buni avtomatlashtiramiz`)
+
+# Savollar?
+
+- `Telegram accountni dasturga ulash hafsizmi?:` Albatta bu hafsiz chunki dastur open source ko’dlarini istalgan odam tekshirib chiqishi mumkun va malumotlar o’z serveringizda qoladi.
+- `Men ham dasturni rivojlantirishga yordam bera olamanmi?:` Albatta biz yordamingizdan doim hursand bo’lamiz dasturni fork qilib oling va yangilanishlarni pull request yaratishingiz mumkun biz albatta ko’rib chiqmiz.
