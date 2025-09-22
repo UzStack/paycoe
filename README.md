@@ -120,7 +120,51 @@ dastur ishlayotganini tekshiring
 sudo systemctl status paycue
 ```
 
-# Webhook
+# Integratsiya
+
+### Transaction yaratish
+
+Request example
+
+```bash
+curl --request POST \
+  --url http://<host>:10800/create/transaction/ \
+  --header 'authorization: Basic OHFhS2ZhS3AyU19JZGZyNUlaU3dqeTFtSFFnYTpWMFl5VFZUMXkyQkRJUWVnVFdLYTI3bUtFU29h' \
+  --header 'content-type: application/json' \
+  --data '{
+  "amount": 20000
+}'
+```
+
+Post data
+
+| amount | To’lov miqdori |
+| --- | --- |
+
+Success response misol
+
+```json
+{
+  "status": true,
+  "data": {
+    "amount": 20000,
+    "transaction_id": "622ea789-5b4c-4e6a-a76b-415ac144eb34"
+  }
+}
+```
+
+Error response misol
+
+```json
+{
+  "status": false,
+  "data": {
+    "detail": "Amount must be less than 100"
+  }
+}
+```
+
+### Webhook
 
 To’lov bajarilganda yoki bekor qilinganda dastur siz kiritgan callback urlga malumotlarni yuboradi. Ikkita asosiy  action mavjud cancel va confirm
 
