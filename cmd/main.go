@@ -23,11 +23,30 @@ import (
 	"gopkg.in/natefinch/lumberjack.v2"
 )
 
+var (
+	VERSION = "1.0.6"
+)
+
+func author() {
+	fmt.Println("Fullname      Azamov Samandar")
+	fmt.Println("Telegram      https://t.me/Azamov_Samandar")
+	fmt.Println("Github        https://github.com/JscorpTech")
+	fmt.Println("Phone         +998(88)-811-23-09")
+	os.Exit(0)
+}
+
+func version() {
+	fmt.Printf("Version: %s\n", VERSION)
+	os.Exit(0)
+}
+
 func printHelp() {
 	fmt.Println("Usage paycue [options]")
 	fmt.Println("Options:")
-	fmt.Println("  -h                 Show this help message")
-	fmt.Println("  --telegram         Telegram accountni ulash")
+	fmt.Println("  --help       -h       Show this help message")
+	fmt.Println("  --version    -v       Show version")
+	fmt.Println("  --telegram   -t       Telegram accountni ulash")
+	fmt.Println("  --author     -a       Author of the project")
 	os.Exit(0)
 }
 
@@ -62,9 +81,13 @@ func main() {
 	defer log.Sync()
 	if len(os.Args) > 1 {
 		switch os.Args[1] {
-		case "-h":
+		case "--author", "-a":
+			author()
+		case "--version", "-v":
+			version()
+		case "--help", "-h":
 			printHelp()
-		case "--telegram":
+		case "--telegram", "-t":
 			if err := infra.Mtproto(context.Background(), nil, zap.NewNop(), 0, false, nil); err != nil {
 				panic(err)
 			}
