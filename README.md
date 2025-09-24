@@ -59,7 +59,6 @@ APP_ID=<app_id>
 APP_HASH=<app_hash>
 TG_PHONE=<you_phone_number>
 SESSION_DIR="sessions"
-CALLBACK_URL=https://example.com
 REDIS_ADDR=127.0.0.1:6379
 WORKERS=10
 WEBHOOK_URL=http://127.0.0.1:10800/health/
@@ -68,7 +67,7 @@ PORT=10800
 DEBUG=true
 ```
 
-> Eslatma: .env fayildagi `CALLBACK_URL` juda muhum to’lov bajarilgandan keyin shu callback urlga malumotlarni yuboradi qaysi transaction bajarilganligi haqida
+> Eslatma: .env fayildagi `WEBHOOK_URL` juda muhum to’lov bajarilgandan keyin shu callback urlga malumotlarni yuboradi qaysi transaction bajarilganligi haqida
 > 
 
 ### Botni sozlash
