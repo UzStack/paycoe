@@ -94,6 +94,9 @@ func main() {
 			fmt.Println("")
 			fmt.Println("Account qo'shildi")
 			os.Exit(0)
+		default:
+			fmt.Println("Invalid options:", os.Args[1])
+			os.Exit(0)
 		}
 	}
 
