@@ -45,7 +45,7 @@ func (h *Handler) HandlerHome(w http.ResponseWriter, r *http.Request) {
 	var transaction_id string
 	amount := data.Amount
 	for {
-		if amount-data.Amount > 100 {
+		if amount-data.Amount > h.Cfg.Limit {
 			json.NewEncoder(w).Encode(domain.Response{
 				Status: false,
 				Data: domain.Detail{

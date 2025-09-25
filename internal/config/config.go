@@ -11,6 +11,7 @@ type Config struct {
 	WebhookURL string
 	Port       string
 	WatchID    int64
+	Limit      int64
 }
 
 func NewConfig() (*Config, error) {
@@ -31,11 +32,22 @@ func NewConfig() (*Config, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	limitStr, err := Getenv("LIMIT", "100", false)
+	if err != nil {
+		return nil, err
+	}
+	limit, err := strconv.ParseInt(limitStr, 10, 64)
+	if err != nil {
+		return nil, err
+	}
+
 	return &Config{
 		Workers:    workers,
 		WebhookURL: GetenvValue("WEBHOOK_URL", ""),
 		Port:       GetenvValue("PORT", "8080"),
 		WatchID:    watchID,
+		Limit:      limit,
 	}, nil
 }
 
